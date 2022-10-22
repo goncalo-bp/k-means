@@ -10,9 +10,7 @@ ERROR_STRING=$(ERROR_COLOR)⨯$(NO_COLOR)
 WARN_STRING=$(WARN_COLOR)problems$(NO_COLOR)
 #------------------------------------------------------------------------------
 CC      = gcc
-LD      = gcc
-CFLAGS  = -O2 -Wall -Wextra
-CFLAGS += -Wno-unused-parameter -Wno-unused-function -Wno-unused-result
+CFLAGS  = -O2 -Wall -Wextra -funroll-loops
 INCLDS  = -I $(INC_DIR)
 #------------------------------------------------------------------------------
 BIN_DIR = bin
@@ -57,14 +55,11 @@ $(BIN_DIR)/$(PROGRAM): $(DEPS) $(OBJS)
 build: setup $(BIN_DIR)/$(PROGRAM)
 
 run: build
-	@srun --partition=cpar stats ./$(BIN_DIR)/$(PROGRAM) 
+	@srun --partition=cpar perf stat -e L1-dcache-load-misses -M cpi ./$(BIN_DIR)/$(PROGRAM) 
 
-runrp: build
-	@srun --partition=cpar stats ./$(BIN_DIR)/$(PROGRAM) 
-
-stats: perf stat -e L1-dcache-load-misses -M cpi ./$(BIN_DIR)/$(PROGRAM)
-
-report: perf record ./$(BIN_DIR)/$(PROGRAM) && perf report --stdio --dsos=k_means[pg50402@search7edu2 TP1]
+# POR CORRIGIR
+report: build
+	@srun --partition=cpar perf record ./$(BIN_DIR)/$(PROGRAM) && perf report --stdio --dsos=k_means[pg50402@search7edu2 TP1]
 
 setup:
 	@mkdir -p $(BIN_DIR)
