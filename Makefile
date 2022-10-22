@@ -19,6 +19,8 @@ DOC_DIR = docs
 INC_DIR = include
 SRC_DIR = src
 #------------------------------------------------------------------------------
+PERF_STATS  = perf stat -e L1-dcache-load-misses -M cpi
+#------------------------------------------------------------------------------
 TRASH   = $(BIN_DIR) $(BLD_DIR) 
 #------------------------------------------------------------------------------
 SRC     = $(wildcard $(SRC_DIR)/*.c)
@@ -55,7 +57,7 @@ $(BIN_DIR)/$(PROGRAM): $(DEPS) $(OBJS)
 build: setup $(BIN_DIR)/$(PROGRAM)
 
 run: build
-	@srun --partition=cpar perf stat -e L1-dcache-load-misses -M cpi ./$(BIN_DIR)/$(PROGRAM) 
+	@srun --partition=cpar $(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) 
 
 # POR CORRIGIR
 report: build
