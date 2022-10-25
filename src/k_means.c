@@ -4,6 +4,8 @@
 #define N 10000000
 #define K 4
 
+// token shaggy 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
+
 typedef struct point {
     float x;
     float y;
@@ -17,7 +19,7 @@ typedef struct cluster {
     int nPoints;
 } Cluster;
 
-Point *new_point(float x, float y) {
+Point *new_point(float x, float y) {  
     Point *p = malloc(sizeof(struct point));
     p->x = x;
     p->y = y;
