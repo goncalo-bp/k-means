@@ -10,7 +10,7 @@ ERROR_STRING=$(ERROR_COLOR)⨯$(NO_COLOR)
 WARN_STRING=$(WARN_COLOR)problems$(NO_COLOR)
 #------------------------------------------------------------------------------
 CC      = gcc
-CFLAGS  = -O2 -Wall -Wextra -funroll-loops
+CFLAGS  = -O2 
 INCLDS  = -I $(INC_DIR)
 #------------------------------------------------------------------------------
 BIN_DIR = bin

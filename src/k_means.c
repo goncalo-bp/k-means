@@ -45,7 +45,8 @@ void inicializa() {
     }
 }
 
-void cluster_points() { // OTIMIZAR (Ciclo dentro do outro)
+void cluster_points() { 
+    #pragma GCC unrolling 4
     for (int j = 0; j < N; j++) {
         float dist = distance(points[j].x, points[j].y , centroids[0].x, centroids[0].y);
         points[j].cluster = 0;
