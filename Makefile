@@ -64,7 +64,6 @@ native: build
 
 report: build
 	@perf record -e L1-dcache-load-misses ./$(BIN_DIR)/$(PROGRAM) && perf report 
-#--stdio --dsos=k_means[pg50402@search7edu2 CPar-TP1]
 
 setup:
 	@mkdir -p $(BIN_DIR)
