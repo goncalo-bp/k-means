@@ -69,7 +69,8 @@ void cluster_points() {
     }
 
     has_converged = 1;
-    float new_x[K], new_y[K];
+    float new_x[K] __attribute__((aligned (32)));
+    float new_y[K] __attribute__((aligned (32)));
     for (int i = 0; i < K; i++) {
         new_x[i] = sum_x[i] / n_points[i];
         new_y[i] = sum_y[i] / n_points[i];
