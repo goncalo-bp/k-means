@@ -55,7 +55,7 @@ void cluster_points() {
         float dist = (points[j].x - centroids[0].x)*(points[j].x - centroids[0].x) + (points[j].y - centroids[0].y)*(points[j].y - centroids[0].y);
         points[j].cluster = 0;
 
-        for (int i = 1; i < K; i+=4) {        
+        for (int i = 1; i < K; i++) {        
             float tmp = (points[j].x - centroids[i].x)*(points[j].x - centroids[i].x) + (points[j].y - centroids[i].y)*(points[j].y - centroids[i].y);
             if (tmp < dist) {
                 points[j].cluster = i;
