@@ -9,23 +9,21 @@
 typedef struct point {
     float x;
     float y;
-    int cluster;
 } Point;
 
-typedef struct cluster {
-    float x;
-    float y;
-} Cluster;
-
 Point *points __attribute__((aligned (32)));
-Cluster *centroids __attribute__((aligned (32)));
+Point *centroids __attribute__((aligned (32)));
 int *n_points __attribute__((aligned (32)));
+float *new_x __attribute__((aligned (32)));
+float *new_y __attribute__((aligned (32)));
 int has_converged;
 
 void aloca() {
     points = malloc(sizeof(struct point) * N);
-    centroids = malloc(sizeof(struct cluster) * K);
+    centroids = malloc(sizeof(struct point) * K);
     n_points = malloc(sizeof(int) * K);
+    new_x = malloc(sizeof(float) * K);
+    new_y = malloc(sizeof(float) * K);
     has_converged = 0;
 }
 
@@ -42,38 +40,34 @@ void inicializa() {
 }
 
 void cluster_points() { 
-    float sum_x[K] __attribute__((aligned (32)));
-    float sum_y[K] __attribute__((aligned (32)));
-    
+    int cluster_id;
     for (int i = 0; i < K; i++) {
-        sum_x[i] = 0; 
-        sum_y[i] = 0; 
+        new_x[i] = 0; 
+        new_y[i] = 0; 
         n_points[i] = 0; 
     }
 
     for (int j = 0; j < N; j++) {
         float dist = (points[j].x - centroids[0].x)*(points[j].x - centroids[0].x) + (points[j].y - centroids[0].y)*(points[j].y - centroids[0].y);
-        points[j].cluster = 0;
-
+        cluster_id = 0;
         for (int i = 1; i < K; i++) {        
             float tmp = (points[j].x - centroids[i].x)*(points[j].x - centroids[i].x) + (points[j].y - centroids[i].y)*(points[j].y - centroids[i].y);
             if (tmp < dist) {
-                points[j].cluster = i;
+                cluster_id = i;
                 dist = tmp;
             }
         }
 
-        n_points[points[j].cluster] += 1;
-        sum_x[points[j].cluster] += points[j].x;
-        sum_y[points[j].cluster] += points[j].y;
+        n_points[cluster_id] += 1;
+        new_x[cluster_id] += points[j].x;
+        new_y[cluster_id] += points[j].y;
     }
 
     has_converged = 1;
-    float new_x[K] __attribute__((aligned (32)));
-    float new_y[K] __attribute__((aligned (32)));
+    
     for (int i = 0; i < K; i++) {
-        new_x[i] = sum_x[i] / n_points[i];
-        new_y[i] = sum_y[i] / n_points[i];
+        new_x[i] = new_x[i] / n_points[i];
+        new_y[i] = new_y[i] / n_points[i];
     }
     for (int i = 0; i < K; i++) {
         if (centroids[i].x != new_x[i] || centroids[i].y != new_y[i])
@@ -104,6 +98,9 @@ int main() {
 
     free(points);
     free(centroids);
+    free(new_x);
+    free(new_y);
+    free(n_points);
 
     return 0;
 }
