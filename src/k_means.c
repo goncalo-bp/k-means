@@ -68,7 +68,7 @@ void reevaluate_points() {
         n_points[i] = 0;
     }
 
-    #pragma GCC unroll 4
+    #pragma GCC unroll 6
     for (int i = 0; i < N; i++) {
         sum_x[points[i].cluster] += points[i].x;
         sum_y[points[i].cluster] += points[i].y;

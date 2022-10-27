@@ -61,7 +61,7 @@ run: build
 
 # POR CORRIGIR
 report: build
-	@srun --partition=cpar perf record ./$(BIN_DIR)/$(PROGRAM) && perf report --stdio --dsos=k_means[pg50402@search7edu2 TP1]
+	@perf record ./$(BIN_DIR)/$(PROGRAM) && perf report --stdio --dsos=k_means[pg50402@search7edu2 CPar-TP1]
 
 setup:
 	@mkdir -p $(BIN_DIR)
