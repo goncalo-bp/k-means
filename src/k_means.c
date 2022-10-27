@@ -74,6 +74,8 @@ void cluster_points() {
     for (int i = 0; i < K; i++) {
         new_x[i] = sum_x[i] / n_points[i];
         new_y[i] = sum_y[i] / n_points[i];
+    }
+    for (int i = 0; i < K; i++) {
         if (centroids[i].x != new_x[i] || centroids[i].y != new_y[i])
             has_converged = 0;
     }
