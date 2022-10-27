@@ -17,20 +17,16 @@ typedef struct cluster {
     float y;
 } Cluster;
 
-Point *points;
-Cluster *centroids;
-Cluster *old_centroids;
-int *n_points;
+Point *points __attribute__((aligned (32)));
+Cluster *centroids __attribute__((aligned (32)));
+int *n_points __attribute__((aligned (32)));
+int has_converged;
 
 void aloca() {
     points = malloc(sizeof(struct point) * N);
     centroids = malloc(sizeof(struct cluster) * K);
-    old_centroids = malloc(sizeof(struct cluster) * K);
     n_points = malloc(sizeof(int) * K);
-}
-
-float distance(float x1, float y1, float x2, float y2) {
-    return (x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2);
+    has_converged = 0;
 }
 
 void inicializa() {
@@ -46,52 +42,40 @@ void inicializa() {
 }
 
 void cluster_points() { 
+    float sum_x[K] __attribute__((aligned (32)));
+    float sum_y[K] __attribute__((aligned (32)));
+    
+    for (int i = 0; i < K; i++) {
+        sum_x[i] = 0; 
+        sum_y[i] = 0; 
+        n_points[i] = 0; 
+    }
+
     for (int j = 0; j < N; j++) {
-        float dist = distance(points[j].x, points[j].y , centroids[0].x, centroids[0].y);
+        float dist = (points[j].x - centroids[0].x)*(points[j].x - centroids[0].x) + (points[j].y - centroids[0].y)*(points[j].y - centroids[0].y);
         points[j].cluster = 0;
-        for (int i = 1; i < K; i++) {
-            float tmp = distance(points[j].x, points[j].y , centroids[i].x, centroids[i].y);
+
+        for (int i = 1; i < K; i+=4) {        
+            float tmp = (points[j].x - centroids[i].x)*(points[j].x - centroids[i].x) + (points[j].y - centroids[i].y)*(points[j].y - centroids[i].y);
             if (tmp < dist) {
                 points[j].cluster = i;
                 dist = tmp;
             }
         }
+
+        n_points[points[j].cluster] += 1;
+        sum_x[points[j].cluster] += points[j].x;
+        sum_y[points[j].cluster] += points[j].y;
     }
-}
 
-void reevaluate_points() {
-    float sum_x[K], sum_y[K];
-
+    has_converged = 1;
     for (int i = 0; i < K; i++) {
-        sum_x[i] = 0;
-        sum_y[i] = 0;
-        n_points[i] = 0;
-    }
-
-    #pragma GCC unroll 6
-    for (int i = 0; i < N; i++) {
-        sum_x[points[i].cluster] += points[i].x;
-        sum_y[points[i].cluster] += points[i].y;
-        n_points[points[i].cluster] += 1;
-    }
-
-    for (int i = 0; i < K; i++) {
-        centroids[i].x = sum_x[i] / n_points[i];
-        centroids[i].y = sum_y[i] / n_points[i];
-    }
-}
-
-int has_converged() {
-    for (int i = 0; i < K; i++)
-        if (centroids[i].x != old_centroids[i].x || centroids[i].y != old_centroids[i].y)
-            return 0;
-    return 1;
-}
-
-void copy_centroids() {
-    for (int i = 0; i < K; i++) {
-        old_centroids[i].x = centroids[i].x;
-        old_centroids[i].y = centroids[i].y;
+        float new_x = sum_x[i] / n_points[i];
+        float new_y = sum_y[i] / n_points[i];
+        if (centroids[i].x != new_x || centroids[i].y != new_y)
+            has_converged = 0;
+        centroids[i].x = new_x;
+        centroids[i].y = new_y;
     }
 }
 
@@ -102,10 +86,8 @@ int main() {
 
     inicializa();
 
-    while (iterations == -1 || !has_converged()) {
-        copy_centroids();
+    while (!has_converged) {
         cluster_points();
-        reevaluate_points();
         iterations++;
     }
 
@@ -116,7 +98,6 @@ int main() {
 
     free(points);
     free(centroids);
-    free(old_centroids);
 
     return 0;
 }

@@ -10,7 +10,7 @@ ERROR_STRING=$(ERROR_COLOR)⨯$(NO_COLOR)
 WARN_STRING=$(WARN_COLOR)problems$(NO_COLOR)
 #------------------------------------------------------------------------------
 CC      = gcc
-CFLAGS  = -O2 
+CFLAGS  = -O2 -mavx -ftree-vectorize
 INCLDS  = -I $(INC_DIR)
 #------------------------------------------------------------------------------
 BIN_DIR = bin
@@ -58,6 +58,9 @@ build: setup $(BIN_DIR)/$(PROGRAM)
 
 run: build
 	@srun --partition=cpar $(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) 
+
+native: build
+	@$(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) 
 
 # POR CORRIGIR
 report: build
