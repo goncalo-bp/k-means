@@ -4,7 +4,6 @@
 #define N 10000000
 #define K 4
 
-// token shaggy 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
 
 typedef struct point {
     float x;
