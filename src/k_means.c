@@ -17,6 +17,7 @@ float *new_x __attribute__((aligned (32)));
 float *new_y __attribute__((aligned (32)));
 int has_converged;
 
+// Aloca espaço para as variáveis globais
 void aloca() {
     points = malloc(sizeof(struct point) * N);
     centroids = malloc(sizeof(struct point) * K);
@@ -26,6 +27,7 @@ void aloca() {
     has_converged = 0;
 }
 
+// Inicializa os pontos com valores aleatóris e os centroides com os valores dos primeiros K pontos
 void inicializa() {
     srand(10);
     for(int i = 0; i < N; i++) {
@@ -38,6 +40,7 @@ void inicializa() {
     }
 }
 
+// Calcula as distâncias dos pontos aos clusters, associa-os ao cluster mais próximo e reavalia as coordenadas dos clusters
 void cluster_points() { 
     int cluster_id;
     for (int i = 0; i < K; i++) {
@@ -46,6 +49,7 @@ void cluster_points() {
         n_points[i] = 0; 
     }
 
+    // Cálculo das distancias dos pontos aos clusters e associação ao cluster mais próximo
     for (int j = 0; j < N; j++) {
         float dist = (points[j].x - centroids[0].x)*(points[j].x - centroids[0].x) + (points[j].y - centroids[0].y)*(points[j].y - centroids[0].y);
         cluster_id = 0;
@@ -64,6 +68,7 @@ void cluster_points() {
 
     has_converged = 1;
     
+    // Reavaliação e possível reatribuição das coordenadas dos centroides
     #pragma omp simd
     for (int i = 0; i < K; i++) {
         new_x[i] = new_x[i] / n_points[i];
@@ -73,7 +78,6 @@ void cluster_points() {
         if (centroids[i].x != new_x[i] || centroids[i].y != new_y[i])
             has_converged = 0;
     }
-
     #pragma omp simd
     for (int i = 0; i < K; i++) {
         centroids[i].x = new_x[i];
