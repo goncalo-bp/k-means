@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#define N 10000000
-#define K 4
-
+#include <omp.h>
 
 typedef struct point {
     float x;
     float y;
 } Point;
+
+int N;
+int K;
 
 Point *points __attribute__((aligned (32)));
 Point *centroids __attribute__((aligned (32)));
@@ -41,7 +41,7 @@ void inicializa() {
 }
 
 // Calcula as distâncias dos pontos aos clusters, associa-os ao cluster mais próximo e reavalia as coordenadas dos clusters
-void cluster_points() { 
+void set_clusters() { 
     int cluster_id;
     for (int i = 0; i < K; i++) {
         new_x[i] = 0; 
@@ -65,35 +65,38 @@ void cluster_points() {
         new_x[cluster_id] += points[j].x;
         new_y[cluster_id] += points[j].y;
     }
+}
 
-    has_converged = 1;
-    
+void calculate_clusters() {
     // Reavaliação e possível reatribuição das coordenadas dos centroides
     #pragma omp simd
     for (int i = 0; i < K; i++) {
         new_x[i] = new_x[i] / n_points[i];
         new_y[i] = new_y[i] / n_points[i];
-    }
-    for (int i = 0; i < K; i++) {
-        if (centroids[i].x != new_x[i] || centroids[i].y != new_y[i])
-            has_converged = 0;
-    }
-    #pragma omp simd
-    for (int i = 0; i < K; i++) {
+
         centroids[i].x = new_x[i];
         centroids[i].y = new_y[i];
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
+    if (argc < 3) {
+        printf("Número argumentos: %d\n", argc);
+        printf("Argumentos insuficientes: ./k_means <N> <K>\n");
+        return -1;
+    }
+    N = atoi(argv[1]);
+    K = atoi(argv[2]);
+    
     int iterations = -1;
 
     aloca();
 
     inicializa();
 
-    while (!has_converged) {
-        cluster_points();
+    while (iterations < 20) {
+        set_clusters();
+        calculate_clusters();
         iterations++;
     }
 
