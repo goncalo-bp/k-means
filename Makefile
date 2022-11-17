@@ -23,7 +23,7 @@ DOC_DIR = docs
 INC_DIR = include
 SRC_DIR = src
 #------------------------------------------------------------------------------
-PERF_STATS  = perf stat -r 5 -e L1-dcache-load-misses -M cpi
+PERF_STATS  = perf stat -r 1 -e L1-dcache-load-misses -M cpi
 #------------------------------------------------------------------------------
 TRASH   = $(BIN_DIR) $(BLD_DIR) 
 #------------------------------------------------------------------------------
