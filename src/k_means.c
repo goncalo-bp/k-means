@@ -83,8 +83,6 @@ void cluster_points() {
 int main(int argc, char **argv) {
     double start; 
     double end;
-    start_cycle = -1;
-    end_cycle = -1;
 
     start = omp_get_wtime(); 
     if (argc < 3) {
