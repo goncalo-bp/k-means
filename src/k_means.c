@@ -81,10 +81,6 @@ void cluster_points() {
 }
 
 int main(int argc, char **argv) {
-    double start; 
-    double end;
-
-    start = omp_get_wtime(); 
     if (argc < 3) {
         printf("Número argumentos: %d\n", argc);
         printf("Argumentos insuficientes: ./k_means <N> <K>\n");
@@ -117,9 +113,6 @@ int main(int argc, char **argv) {
     free(new_x);
     free(new_y);
     free(n_points);
-
-    end = omp_get_wtime(); 
-    printf("\nProgram took %f seconds\n", end - start);
 
     return 0;
 }

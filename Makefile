@@ -13,9 +13,7 @@ CC      = gcc
 CFLAGS  = -O2 -mavx -ftree-vectorize -g -fno-omit-frame-pointer -fopenmp -lm
 INCLDS  = -I $(INC_DIR)
 #------------------------------------------------------------------------------
-CP_CLUSTERS = 4
-CP_POINTS   = 10000000
-THREADS     = 4
+THREADS     = 20
 #------------------------------------------------------------------------------
 BIN_DIR = bin
 BLD_DIR = build
@@ -61,10 +59,10 @@ $(BIN_DIR)/$(PROGRAM): $(DEPS) $(OBJS)
 build: setup $(BIN_DIR)/$(PROGRAM)
 
 runseq: build
-	@$(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) $(CP_POINTS) $(CP_CLUSTERS)
+	@$(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) 10000000 $(CP_CLUSTERS)
 
 runpar: build
-	@$(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) $(CP_POINTS) $(CP_CLUSTERS) $(THREADS)
+	@$(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) 10000000 $(CP_CLUSTERS) $(THREADS)
 
 report: build
 	@perf record -e L1-dcache-load-misses ./$(BIN_DIR)/$(PROGRAM) && perf report 
