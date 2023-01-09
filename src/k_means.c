@@ -5,6 +5,7 @@
 #include <math.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <omp.h>
 
 #define MAX_ITERATIONS 20
 
@@ -32,12 +33,11 @@ float distance(float p1_x, float p1_y, float p2_x, float p2_y) {
 
 /* This function goes through that data points and assigns them to a cluster */
 void assign_cluster(float *k_x, float *k_y, float *recv_x, float *recv_y, float *sum_x, float *sum_y, int *k_points) {
-	int index;
-	float min_dist, temp_dist;
 
+	#pragma omp parallel for reduction(+ : sum_x[:nClusters], sum_y[:nClusters], k_points[:nClusters])
 	for(int i = 0; i < nPoints/nProcs; i++) {
-		min_dist = distance(k_x[0], k_y[0], recv_x[i], recv_y[i]);
-		index = 0;
+		float temp_dist, min_dist = distance(k_x[0], k_y[0], recv_x[i], recv_y[i]);
+		int index = 0;
 
 		for(int j = 1; j < nClusters; j++) {
 			temp_dist = distance(k_x[j], k_y[j], recv_x[i], recv_y[i]);
@@ -86,13 +86,15 @@ int main(int argc, char **argv) {
 	float *recv_y = NULL;
 
 
-	if (argc < 2) {
+	if (argc < 3) {
         printf("Número argumentos: %d\n", argc);
-        printf("Argumentos insuficientes: ./k_means <Num_Points> <Num_Clusters>\n");
+        printf("Argumentos insuficientes: ./k_means <Num_Points> <Num_Clusters> <Threads(opcional)>\n");
         exit(-1);
     }
     nPoints = atoi(argv[1]);
     nClusters = atoi(argv[2]);
+	if (argc > 3)
+		omp_set_num_threads(atoi(argv[3]));
 
 	// allocate memory for arrays
 	k_means_x = (float *)malloc(sizeof(float) * nClusters);
@@ -110,14 +112,8 @@ int main(int argc, char **argv) {
 		exit(-1);
 	}
 
-	if (rank == 0){
+	if (rank == 0)
 		init(data_x_points, data_y_points, k_means_x, k_means_y);
-
-		printf("\nRunning k-means algorithm for %d iterations...\n\n", MAX_ITERATIONS);
-		for(int i = 0; i < nClusters; i++) {
-			printf("Initial K-means: (%f, %f)\n", k_means_x[i], k_means_y[i]);
-		}
-	}
 
 	// allocate memory for receive buffers
 	recv_x = (float *) malloc(sizeof(float) * (nPoints/nProcs));
@@ -126,7 +122,6 @@ int main(int argc, char **argv) {
 		perror("malloc");
 		exit(-1);
 	}
-
 
 	k_points = (int *)malloc(sizeof(int) * nClusters);
 	recv_k_points = (int *)malloc(sizeof(int) * nClusters);
@@ -155,22 +150,24 @@ int main(int argc, char **argv) {
 		assign_cluster(k_means_x, k_means_y, recv_x, recv_y, sum_x, sum_y, k_points);
 
 		// gather information
-		MPI_Reduce(sum_x, res_x, 4, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
-		MPI_Reduce(sum_y, res_y, 4, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
-		MPI_Reduce(k_points, recv_k_points, 4, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+		MPI_Reduce(sum_x, res_x, nClusters, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+		MPI_Reduce(sum_y, res_y, nClusters, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+		MPI_Reduce(k_points, recv_k_points, nClusters, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 
 		// let the root process recalculate k means
 		if(rank == 0) {
-			printf("--------------------------------------------------\n");
-            for(int i = 0; i < nClusters; i++) {
+			for (int i = 0; i < nClusters; i++) {
 				k_means_x[i] = res_x[i] / recv_k_points[i];
-				k_means_y[i] = res_y[i] / recv_k_points[i];
-				printf("Center #%d: (%.3f, %.3f) : Size: %d\n", i, k_means_x[i], k_means_y[i], recv_k_points[i]);
-		    }
-            printf("Iterations: %d\n", it+1);
-			printf("--------------------------------------------------\n");
+				k_means_y[i] = res_y[i] / recv_k_points[i];		
+			}
+			if (it == MAX_ITERATIONS-1) {	
+				printf("--------------------------------------------------\n");
+            	for(int i = 0; i < nClusters; i++)
+					printf("Center #%d: (%.3f, %.3f) : Size: %d\n", i, k_means_x[i], k_means_y[i], recv_k_points[i]);
+            	printf("Iterations: %d\n", it+1);
+				printf("--------------------------------------------------\n");
+			}
 		}
-
 		for (int i = 0; i < nClusters; i++) {
 			sum_x[i] = 0;
 			sum_y[i] = 0;
