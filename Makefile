@@ -9,11 +9,15 @@ OK_STRING=$(OK_COLOR)✓$(NO_COLOR)
 ERROR_STRING=$(ERROR_COLOR)⨯$(NO_COLOR)
 WARN_STRING=$(WARN_COLOR)problems$(NO_COLOR)
 #------------------------------------------------------------------------------
-CC      = gcc
-CFLAGS  = -O2 -mavx -ftree-vectorize -g -fno-omit-frame-pointer -fopenmp -lm
-INCLDS  = -I $(INC_DIR)
+THREADS = 10
+PROCESSORS = 4
+CP_CLUSTERS= 32
 #------------------------------------------------------------------------------
-THREADS     = 20
+CFLAGS  = -O2 -fopenmp #-mavx -ftree-vectorize -g -fno-omit-frame-pointer
+RFLAGS	= -np $(PROCESSORS)
+#------------------------------------------------------------------------------
+CC      = mpicc #gcc
+INCLDS  = -I $(INC_DIR)
 #------------------------------------------------------------------------------
 BIN_DIR = bin
 BLD_DIR = build
@@ -21,9 +25,9 @@ DOC_DIR = docs
 INC_DIR = include
 SRC_DIR = src
 #------------------------------------------------------------------------------
-PERF_STATS  = perf stat -r 1 -e L1-dcache-load-misses -M cpi
+PERF_STATS  = perf stat -r 1 -e L1-dcache-load-misses 
 #------------------------------------------------------------------------------
-TRASH   = $(BIN_DIR) $(BLD_DIR) 
+TRASH   = $(BIN_DIR) $(BLD_DIR) *.out
 #------------------------------------------------------------------------------
 SRC     = $(wildcard $(SRC_DIR)/*.c)
 OBJS    = $(patsubst $(SRC_DIR)/%.c,$(BLD_DIR)/%.o,$(SRC))
@@ -58,14 +62,13 @@ $(BIN_DIR)/$(PROGRAM): $(DEPS) $(OBJS)
 
 build: setup $(BIN_DIR)/$(PROGRAM)
 
-runseq: build
-	@$(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) 10000000 $(CP_CLUSTERS)
+run: build
+	@mpirun -np $(PROCESSORS) ./bin/k_means 10000000 $(CP_CLUSTERS) $(THREADS)
 
-runpar: build
-	@$(PERF_STATS) ./$(BIN_DIR)/$(PROGRAM) 10000000 $(CP_CLUSTERS) $(THREADS)
+runc: build
+	@sbatch --ntasks=4 --partition=cpar mpi.sh
 
-report: build
-	@perf record -e L1-dcache-load-misses ./$(BIN_DIR)/$(PROGRAM) && perf report 
+runcluster:
 
 setup:
 	@mkdir -p $(BIN_DIR)
