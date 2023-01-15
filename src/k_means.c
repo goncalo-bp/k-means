@@ -31,7 +31,6 @@ float distance(float p1_x, float p1_y, float p2_x, float p2_y) {
     return (p1_x - p2_x) * (p1_x - p2_x) + (p1_y - p2_y) * (p1_y - p2_y);
 }
 
-/* This function goes through that data points and assigns them to a cluster */
 void assign_cluster(float *k_x, float *k_y, float *recv_x, float *recv_y, float *sum_x, float *sum_y, int *k_points) {
 
 	#pragma omp parallel for reduction(+ : sum_x[:nClusters], sum_y[:nClusters], k_points[:nClusters])

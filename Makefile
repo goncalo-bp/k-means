@@ -16,7 +16,7 @@ CP_CLUSTERS= 32
 CFLAGS  = -O2 -fopenmp #-mavx -ftree-vectorize -g -fno-omit-frame-pointer
 RFLAGS	= -np $(PROCESSORS)
 #------------------------------------------------------------------------------
-CC      = mpicc #gcc
+CC      = mpicc
 INCLDS  = -I $(INC_DIR)
 #------------------------------------------------------------------------------
 BIN_DIR = bin
@@ -25,7 +25,7 @@ DOC_DIR = docs
 INC_DIR = include
 SRC_DIR = src
 #------------------------------------------------------------------------------
-PERF_STATS  = perf stat -r 1 -e L1-dcache-load-misses 
+PERF_STATS  = perf stat -r 5 -e L1-dcache-load-misses 
 #------------------------------------------------------------------------------
 TRASH   = $(BIN_DIR) $(BLD_DIR) *.out
 #------------------------------------------------------------------------------
@@ -67,8 +67,6 @@ run: build
 
 runc: build
 	@sbatch --ntasks=4 --partition=cpar mpi.sh
-
-runcluster:
 
 setup:
 	@mkdir -p $(BIN_DIR)
