@@ -1,4 +1,7 @@
-# CPar-TP1
+# CPar: k-means
+
 ## Colaboradores
-* Gonçalo Pinto (pg50402)
-* João Caldas (pg50494)
+* Gonçalo Pinto
+* João Caldas
+
+### Implementação em C do algoritmo de clustering k-means, de forma a explorar OpenMP e MPI como formas de otimização
